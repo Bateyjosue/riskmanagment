@@ -7,17 +7,19 @@
   "private": true,
   "dependencies": {
     "@sap/cds": "^7",
-    "express": "^4",
+    "@sap/cds-hana": "^2",
     "@sap/xssec": "^3",
-    "@sap/cds-hana": "^2"
+    "express": "^4"
   },
   "devDependencies": {
     "@cap-js/sqlite": "^1",
-    "@sap/cds-dk": "^7"
+    "@sap/cds-dk": "^7",
+    "@sap/ux-specification": "^1.120.10"
   },
   "scripts": {
     "freeport": "sudo kill $(sudo lsof -t -i :4004)",
-    "start": "npm run freeport || cds-serve"
+    "start": "npm run freeport || cds-serve",
+    "watch-risks": "cds watch --open risks/webapp/index.html?sap-ui-xx-viewCache=false"
   },
   "cds": {
     "requires": {
@@ -26,5 +28,8 @@
         "db": "hana"
       }
     }
-  }
+  },
+  "sapux": [
+    "app/risks"
+  ]
 }
