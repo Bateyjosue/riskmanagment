@@ -27,7 +27,7 @@ modules:
           srv-url: ${default-url}
     requires:
       - name: riskmanagment-db
-      - name: riskmanagment-auth
+      - name: riskmanagment-uaa
 
   - name: riskmanagment-db-deployer
     type: hdb
@@ -59,7 +59,7 @@ resources:
     parameters:
       service: hana
       service-plan: hdi-shared
-  - name: riskmanagment-auth
+  - name: riskmanagment-uaa
     type: org.cloudfoundry.managed-service
     parameters:
       service: xsuaa
@@ -68,3 +68,12 @@ resources:
       config:
         xsappname: riskmanagment-${org}-${space}
         tenant-mode: dedicated
+        role-collections:
+        - name: 'RiskManager-${space}'
+          description: Manage Risk
+          role-template-references:
+            -$XAPPNAME.RiskManager
+        - name: 'RiskViewer${space}'
+          description: View Risk
+          role-template-references:
+            -$XAPPNAME.RiskViewer
