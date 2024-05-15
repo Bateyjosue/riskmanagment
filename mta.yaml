@@ -1,92 +1,165 @@
-_schema-version: '3.1'
+_schema-version: "3.1"
 ID: riskmanagment
+description: A simple CAP project.
 version: 1.0.0
-description: "A simple CAP project."
+modules:
+- name: riskmanagment-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: riskmanagment-db
+  - name: riskmanagment-uaa
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    readiness-health-check-http-endpoint: /health
+    readiness-health-check-type: http
+  build-parameters:
+    builder: npm
+- name: riskmanagment-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: riskmanagment-db
+  parameters:
+    buildpack: nodejs_buildpack
+- name: riskmanagment
+  type: approuter.nodejs
+  path: app/router
+  requires:
+  - name: srv-api
+    group: destinations
+    properties:
+      forwardAuthToken: true
+      name: srv-api
+      url: ~{srv-url}
+  - name: riskmanagment-uaa
+  - name: riskmanagment-destination
+    group: destinations
+    properties:
+      forwardAuthToken: false
+      name: ui5
+      url: https://ui5.sap.com
+  parameters:
+    disk-quota: 256M
+    keep-existing-routes: true
+    memory: 256M
+- name: riskmanagment-destinations
+  type: com.sap.application.content
+  requires:
+  - name: riskmanagment-uaa
+    parameters:
+      service-key:
+        name: riskmanagment-uaa-key
+  - name: riskmanagment-html5-repo-host
+    parameters:
+      service-key:
+        name: riskmanagment-html5-repo-host-key
+  - name: srv-api
+  - name: riskmanagment-destination
+    parameters:
+      content-target: true
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Authentication: OAuth2UserTokenExchange
+          Name: riskmanagment-app-srv
+          TokenServiceInstanceName: riskmanagment-uaa
+          TokenServiceKeyName: riskmanagment-uaa-key
+          URL: ~{srv-api/srv-url}
+          sap.cloud.service: riskmanagment.service
+        - Name: riskmanagment-html5-repo-host
+          ServiceInstanceName: riskmanagment-html5-repo-host
+          ServiceKeyName: riskmanagment-html5-repo-host-key
+          sap.cloud.service: riskmanagment.service
+        - Authentication: OAuth2UserTokenExchange
+          Name: riskmanagment-uaa
+          ServiceInstanceName: riskmanagment-uaa
+          ServiceKeyName: riskmanagment-uaa-key
+          sap.cloud.service: riskmanagment.service
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+- name: riskmanagment-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: riskmanagment-html5-repo-host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - nsrisks.zip
+      name: nsrisks
+      target-path: resources/
+- name: nsrisks
+  type: html5
+  path: app/risks
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: riskmanagment-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+- name: riskmanagment-uaa
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      role-collections:
+      - description: Manage Risks
+        name: RiskManager-${space}
+        role-template-references:
+        - $XSAPPNAME.RiskManager
+      - description: View Risks
+        name: RiskViewer-${space}
+        role-template-references:
+        - $XSAPPNAME.RiskViewer
+      tenant-mode: dedicated
+      xsappname: riskmanagment-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+- name: riskmanagment-destination
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+    service: destination
+    service-plan: lite
+- name: riskmanagment-html5-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-host
 parameters:
+  deploy_mode: html5-repo
   enable-parallel-deployments: true
 build-parameters:
   before-all:
-    - builder: custom
-      commands:
-        - npm install --production
-        - npx -p @sap/cds-dk cds build --production
-        - npx rimraf gen/db/src/gen/data
-modules:
-  - name: riskmanagment-srv
-    type: nodejs
-    path: gen/srv
-    parameters:
-      buildpack: nodejs_buildpack
-      readiness-health-check-type: http
-      readiness-health-check-http-endpoint: /health
-    build-parameters:
-      builder: npm
-    provides:
-      - name: srv-api # required by consumers of CAP services (e.g. approuter)
-        properties:
-          srv-url: ${default-url}
-    requires:
-      - name: riskmanagment-db
-      - name: riskmanagment-uaa
-
-  - name: riskmanagment-db-deployer
-    type: hdb
-    path: gen/db
-    parameters:
-      buildpack: nodejs_buildpack
-    requires:
-      - name: riskmanagment-db
-
-  - name: riskmanagment
-    type: approuter.nodejs
-    path: app/router
-    parameters:
-      keep-existing-routes: true
-      disk-quota: 256M
-      memory: 256M
-    requires:
-      - name: srv-api
-        group: destinations
-        properties:
-          name: srv-api # must be used in xs-app.json as well
-          url: ~{srv-url}
-          forwardAuthToken: true
-      - name: riskmanagment-uaa
-
-resources:
-  - name: riskmanagment-db
-    type: com.sap.xs.hdi-container
-    parameters:
-      service: hana
-      service-plan: hdi-shared
-  - name: riskmanagment-uaa
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: xsuaa
-      service-plan: application
-      path: ./xs-security.json
-      config:
-        xsappname: riskmanagment-${org}-${space}
-        tenant-mode: dedicated
-        role-collections:
-        - name: 'RiskManager-${space}'
-          description: Manage Risks
-          role-template-references:
-            - $XSAPPNAME.RiskManager
-        - name: 'RiskViewer-${space}'
-          description: View Risks
-          role-template-references:
-            - $XSAPPNAME.RiskViewer
-  - name: riskmanagment-destination
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: destination
-      service-plan: lite
-      config:
-        HTML5Runtime_enabled: true
-  - name: riskmanagment-html5-repo-host
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-host
-
+  - builder: custom
+    commands:
+    - npm install --production
+    - npx -p @sap/cds-dk cds build --production
+    - npx rimraf gen/db/src/gen/data
