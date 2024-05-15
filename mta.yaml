@@ -51,7 +51,7 @@ modules:
           name: srv-api # must be used in xs-app.json as well
           url: ~{srv-url}
           forwardAuthToken: true
-      - name: riskmanagment-auth
+      - name: riskmanagment-uaa
 
 resources:
   - name: riskmanagment-db
@@ -70,10 +70,23 @@ resources:
         tenant-mode: dedicated
         role-collections:
         - name: 'RiskManager-${space}'
-          description: Manage Risk
+          description: Manage Risks
           role-template-references:
-            -$XAPPNAME.RiskManager
-        - name: 'RiskViewer${space}'
-          description: View Risk
+            - $XSAPPNAME.RiskManager
+        - name: 'RiskViewer-${space}'
+          description: View Risks
           role-template-references:
-            -$XAPPNAME.RiskViewer
+            - $XSAPPNAME.RiskViewer
+  - name: riskmanagment-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        HTML5Runtime_enabled: true
+  - name: riskmanagment-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+
