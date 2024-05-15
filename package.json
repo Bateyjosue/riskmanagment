@@ -16,7 +16,7 @@
     "@sap/cds-dk": "^7",
     "@sap/ux-specification": "^1.120.10"
   },
-  "engines":{
+  "engines": {
     "node": "^18"
   },
   "scripts": {
@@ -37,12 +37,16 @@
             "risk.viewer@tester.sap.com": {
               "password": "initial",
               "ID": "risk.viewer@tester.sap.com",
-              "roles": ["RiskViewer"]
+              "roles": [
+                "RiskViewer"
+              ]
             },
-            "risk.manager@tester.sap.com":{
+            "risk.manager@tester.sap.com": {
               "password": "initial",
               "ID": "risk.manager@tester.sap.com",
-              "roles": ["RiskManager"]
+              "roles": [
+                "RiskManager"
+              ]
             }
           }
         }
