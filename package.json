@@ -16,6 +16,9 @@
     "@sap/cds-dk": "^7",
     "@sap/ux-specification": "^1.120.10"
   },
+  "engines":{
+    "node": "^18"
+  },
   "scripts": {
     "freeport": "sudo kill $(sudo lsof -t -i :4004)",
     "start": "cds-serve",
