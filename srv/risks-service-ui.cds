@@ -33,14 +33,10 @@ annotate RiskService.Risks with @(
 				Value: descr
 			}
 		},
-		SelectionFields: [prio],
+		SelectionFields: [prio, title],
 		LineItem: [
 			{Value: title},
 			{Value: miti_ID},
-      {
-					Value: title,
-					Criticality: criticality
-				},
 			{
 				Value: prio,
 				Criticality: criticality
@@ -56,10 +52,7 @@ annotate RiskService.Risks with @(
 		FieldGroup#Main: {
 			Data: [
 				{Value: miti_ID},
-        {
-					Value: title,
-					Criticality: criticality
-				},
+        
 				{
 					Value: prio,
 					Criticality: criticality
