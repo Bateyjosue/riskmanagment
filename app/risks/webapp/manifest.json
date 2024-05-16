@@ -15,6 +15,18 @@
             "version": "1.13.4",
             "toolsId": "113d7d2d-0287-4e0f-9707-d1d88aa6afec"
         },
+        "crossNavigation": {
+            "inbounds": {
+                "Risks-display": {
+                    "signature": {
+                        "parameters": {},
+                        "additionalParameters": "allowed"
+                    },
+                    "semanticObject": "Risks",
+                    "action": "display"
+                }
+            }
+        },
         "dataSources": {
             "mainService": {
                 "uri": "/odata/v4/service/risk/",
