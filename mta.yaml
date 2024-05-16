@@ -19,13 +19,6 @@ modules:
     readiness-health-check-type: http
   build-parameters:
     builder: npm
-- name: riskmanagment-db-deployer
-  type: hdb
-  path: gen/db
-  requires:
-  - name: riskmanagment-db
-  parameters:
-    buildpack: nodejs_buildpack
 - name: riskmanagment
   type: approuter.nodejs
   path: app/router
@@ -84,6 +77,13 @@ modules:
         existing_destinations_policy: update
   build-parameters:
     no-source: true
+- name: riskmanagment-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: riskmanagment-db
+  parameters:
+    buildpack: nodejs_buildpack
 - name: riskmanagment-app-content
   type: com.sap.application.content
   path: .
@@ -109,11 +109,6 @@ modules:
     - npm run build:cf
     supported-platforms: []
 resources:
-- name: riskmanagment-db
-  type: com.sap.xs.hdi-container
-  parameters:
-    service: hana
-    service-plan: hdi-shared
 - name: riskmanagment-uaa
   type: org.cloudfoundry.managed-service
   parameters:
@@ -132,6 +127,11 @@ resources:
     path: ./xs-security.json
     service: xsuaa
     service-plan: application
+- name: riskmanagment-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
 - name: riskmanagment-destination
   type: org.cloudfoundry.managed-service
   parameters:
